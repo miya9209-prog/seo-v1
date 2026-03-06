@@ -63,6 +63,31 @@ STYLE_HINTS = {
     "스트라이프": ["스트라이프", "클래식셔츠", "출근룩코디"],
 }
 
+ENGLISH_KEYWORDS_COMMON = [
+    "korean fashion",
+    "women fashion",
+    "women clothing",
+    "k fashion",
+]
+
+ENGLISH_KEYWORDS_BY_CATEGORY = {
+    "니트": ["women knit", "women sweater", "korean knitwear"],
+    "가디건": ["women cardigan", "knit cardigan women", "korean cardigan"],
+    "블라우스": ["women blouse", "office blouse women", "korean blouse"],
+    "셔츠": ["women shirt", "striped shirt women", "office look women"],
+    "티셔츠": ["women t shirt", "slim fit tee women", "daily look women"],
+    "맨투맨": ["women sweatshirt", "casual top women", "daily look women"],
+    "자켓": ["women jacket", "tweed jacket women", "korean jacket"],
+    "점퍼": ["women jumper", "light outer women", "casual jacket women"],
+    "바바리": ["women trench coat", "trench coat women", "korean trench"],
+    "코트": ["women coat", "handmade coat women", "half coat women"],
+    "슬랙스": ["women slacks", "wide slacks women", "office pants women"],
+    "팬츠": ["women pants", "banding pants women", "wide pants women"],
+    "스커트": ["women skirt", "long skirt women", "office skirt women"],
+    "원피스": ["women dress", "occasion dress women", "korean dress"],
+    "조끼": ["women vest", "knit vest women", "layered look women"],
+}
+
 STOP_WORDS = {
     "미샵", "misharp", "상품", "신상", "추천", "여성", "상의", "하의", "기획", "best",
     "new", "sale", "md", "룩", "코디"
@@ -317,32 +342,43 @@ def dedupe_keep_order(items: list[str]) -> list[str]:
     return output
 
 
-def build_keywords(product_name: str, category: str, styles: list[str]) -> list[str]:
+def build_english_keywords(category: str) -> list[str]:
     keywords = []
-    keywords.extend(CORE_KEYWORDS)
+    keywords.extend(ENGLISH_KEYWORDS_COMMON)
+    keywords.extend(ENGLISH_KEYWORDS_BY_CATEGORY.get(category, []))
+    keywords = dedupe_keep_order(keywords)
+    return keywords[:5]
+
+
+def build_keywords(product_name: str, category: str, styles: list[str]) -> list[str]:
+    korean_keywords = []
+    korean_keywords.extend(CORE_KEYWORDS)
 
     if category in CATEGORY_MAP:
-        keywords.extend(CATEGORY_MAP[category])
+        korean_keywords.extend(CATEGORY_MAP[category])
 
     for style in styles:
-        keywords.extend(STYLE_HINTS.get(style, []))
+        korean_keywords.extend(STYLE_HINTS.get(style, []))
 
     tokens = tokenize_korean_phrases(product_name)
-    keywords.extend(tokens)
+    korean_keywords.extend(tokens)
 
     if category != "의류":
-        keywords.append(f"4050여성{category}")
-        keywords.append(f"중년여성{category}")
+        korean_keywords.append(f"4050여성{category}")
+        korean_keywords.append(f"중년여성{category}")
 
     if category in ["니트", "가디건", "블라우스", "셔츠", "티셔츠"]:
-        keywords.extend(["단정한코디", "출근룩추천", "모임룩추천"])
+        korean_keywords.extend(["단정한코디", "출근룩추천", "모임룩추천"])
     elif category in ["슬랙스", "팬츠", "스커트"]:
-        keywords.extend(["편한출근룩", "체형커버팬츠", "데일리룩추천"])
+        korean_keywords.extend(["편한출근룩", "체형커버팬츠", "데일리룩추천"])
     else:
-        keywords.extend(["간절기코디", "여성아우터추천", "4050모임룩"])
+        korean_keywords.extend(["간절기코디", "여성아우터추천", "4050모임룩"])
 
-    keywords = dedupe_keep_order(keywords)
-    return keywords[:25]
+    korean_keywords = dedupe_keep_order(korean_keywords)
+    english_keywords = build_english_keywords(category)
+
+    final_keywords = korean_keywords[:20] + english_keywords
+    return dedupe_keep_order(final_keywords)[:25]
 
 
 def build_alt_text(product_name: str, category: str, styles: list[str]) -> str:
@@ -471,6 +507,10 @@ def main() -> None:
             - 메타태그 description
             - 메타태그 keywords
             - 상품 이미지 alt 텍스트
+
+            **키워드 구성 방식**
+            - 한국어 구매 키워드 중심
+            - 마지막에 영어 SEO 키워드 3~5개 자동 포함
             """
         )
 
@@ -513,6 +553,7 @@ def main() -> None:
             1. 미샵 상품 상세 URL을 그대로 붙여넣습니다.
             2. 생성된 결과를 카페24 SEO 입력란에 복사합니다.
             3. 필요하면 title과 description만 미세 수정해 사용합니다.
+            4. keywords는 한국어 중심으로 구성되고, 영어 키워드가 마지막에 자동 추가됩니다.
 
             **추천 활용 방식**
             - 신상품 등록 시마다 바로 사용
