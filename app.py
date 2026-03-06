@@ -721,6 +721,8 @@ def render_output(result: dict) -> None:
 
 def main() -> None:
     st.title("🔎 MISHARP 카페24 SEO 자동 생성기")
+    st.caption("상품 URL을 넣으면 카페24 상품등록용 SEO 항목과 콘텐츠 SEO 참고 항목을 함께 생성합니다.")
+
 
     with st.expander("사용팁", expanded=True):
         render_usage_tips()
