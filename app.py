@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 
-AUTHOR_DEFAULT = "MISHARP"
+AUTHOR_DEFAULT = "MISHARP" "미샵"
 BRAND_NAME = "미샵 MISHARP"
 CORE_KEYWORDS = [
     "4050여성패션",
