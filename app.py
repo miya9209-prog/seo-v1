@@ -64,8 +64,8 @@ STYLE_HINTS = {
 }
 
 STOP_WORDS = {
-    "미샵", "misharp", "상품", "신상", "추천", "여성", "상의", "하의", "기획", "BEST",
-    "best", "NEW", "new", "SALE", "sale", "md", "MD", "룩", "코디"
+    "미샵", "misharp", "상품", "신상", "추천", "여성", "상의", "하의", "기획", "best",
+    "new", "sale", "md", "룩", "코디"
 }
 
 USER_AGENT = (
@@ -186,7 +186,7 @@ def extract_materials(description: str) -> list[str]:
 def extract_fit_style(product_name: str, description: str) -> list[str]:
     corpus = f"{product_name} {description}"
     hits = []
-    for key in ["루즈핏", "정핏", "와이드", "슬리밍", "아워 글래스", "밴딩", "배색", "카라", "랩", "트위드", "후드"]:
+    for key in ["루즈핏", "정핏", "와이드", "슬리밍", "아워 글래스", "밴딩", "배색", "카라", "랩", "트위드", "후드", "꼬임"]:
         if key in corpus:
             hits.append(key)
     return hits
@@ -357,7 +357,7 @@ def build_alt_text(product_name: str, category: str, styles: list[str]) -> str:
             return style
 
     if category != "의류":
-        return compact[:8] if len(compact) <= 8 else category if len(category) <= 6 else compact[:6]
+        return category if len(category) <= 6 else compact[:6]
     return compact[:8]
 
 
@@ -401,7 +401,7 @@ def copyable_output(label: str, value: str, key: str, height: int = 68) -> None:
     <div style=\"margin:0 0 10px 0;\">
       <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;\">
         <div style=\"font-size:14px;font-weight:600;color:#111827;\">{safe_label}</div>
-        <button onclick=\"navigator.clipboard.writeText(document.getElementById('{key}').innerText);this.innerText='복사완료';setTimeout(()=>this.innerText='복사',1200);\"
+        <button onclick=\"navigator.clipboard.writeText(document.getElementById('{key}').innerText);this.innerText='✓ 복사됨';setTimeout(()=>this.innerText='복사',1400);\"
           style=\"font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;\">복사</button>
       </div>
       <div id=\"{key}\" style=\"white-space:pre-wrap;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#f9fafb;font-size:14px;line-height:1.6;min-height:{height}px;\">{safe_value}</div>
@@ -425,12 +425,12 @@ def render_output(result: dict) -> None:
         copyable_output("5. 상품 이미지 alt 텍스트", result["alt_text"], "copy_alt", 52)
 
         formatted = (
-    f"1. 브라우저 타이틀(title) : {result['title']}\n\n"
-    f"2. 메타태그1 author : {result['author']}\n\n"
-    f"3. 메타태그2 description : {result['description']}\n\n"
-    f"4. 메타태그3 keywords : {result['keywords']}\n\n"
-    f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}"
-)
+            f"1. 브라우저 타이틀(title) : {result['title']}\n\n"
+            f"2. 메타태그1 author : {result['author']}\n\n"
+            f"3. 메타태그2 description : {result['description']}\n\n"
+            f"4. 메타태그3 keywords : {result['keywords']}\n\n"
+            f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}"
+        )
 
         copyable_output("카페24 복사용 전체", formatted, "copy_all", 240)
         st.download_button(
@@ -475,7 +475,11 @@ def main() -> None:
         )
 
     default_url = "https://www.misharp.co.kr/product/detail.html?product_no=28522&cate_no=24&display_group=1"
-    url = st.text_input("미샵 상품 URL", value=default_url, placeholder="https://www.misharp.co.kr/product/detail.html?..." )
+    url = st.text_input(
+        "미샵 상품 URL",
+        value=default_url,
+        placeholder="https://www.misharp.co.kr/product/detail.html?..."
+    )
 
     col_a, col_b = st.columns([1, 1])
     generate = col_a.button("SEO 생성하기", use_container_width=True, type="primary")
@@ -517,14 +521,17 @@ def main() -> None:
             """
         )
 
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style='text-align:center;font-size:13px;color:#6b7280;padding:10px 0;'>
+        © 2026 <b>MISHARP 미샵</b>. All rights reserved.<br>
+        MISHARP SEO Generator
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-st.markdown("---")
-st.markdown("""
-<div style='text-align:center;font-size:13px;color:#6b7280;padding:10px 0;'>
-© 2026 <b>MISHARP 미샵</b>. All rights reserved.<br>
-MISHARP SEO Generator
-</div>
-""", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
