@@ -606,7 +606,7 @@ def copyable_output(label: str, value: str, key: str, height: int = 68) -> None:
     component_html = f"""
     <div style="margin:0 0 10px 0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div style="font-size:14px;font-weight:600;color:#111827;">{safe_label}</div>
+        <div style="font-size:14px;font-weight:600;color:#f3f4f6;">{safe_label}</div>
         <button onclick="navigator.clipboard.writeText(document.getElementById('{key}').innerText);this.innerText='✓ 복사됨';setTimeout(()=>this.innerText='복사',1400);"
           style="font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;">복사</button>
       </div>
