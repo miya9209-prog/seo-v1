@@ -397,9 +397,6 @@ def build_alt_text(product_name: str, category: str, styles: list[str]) -> str:
     return compact[:8]
 
 
-# ---------------------------
-# 추가 생성 항목
-# ---------------------------
 def build_slug(product_name: str, category: str) -> str:
     en_map = {
         "니트": "knit",
@@ -606,67 +603,107 @@ def copyable_output(label: str, value: str, key: str, height: int = 68) -> None:
     component_html = f"""
     <div style="margin:0 0 10px 0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div style="font-size:14px;font-weight:600;color:#f3f4f6;">{safe_label}</div>
+        <div style="font-size:14px;font-weight:700;color:#f3f4f6;">{safe_label}</div>
         <button onclick="navigator.clipboard.writeText(document.getElementById('{key}').innerText);this.innerText='✓ 복사됨';setTimeout(()=>this.innerText='복사',1400);"
-          style="font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;">복사</button>
+          style="font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111827;cursor:pointer;">복사</button>
       </div>
-      <div id="{key}" style="white-space:pre-wrap;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#f9fafb;font-size:14px;line-height:1.6;min-height:{height}px;">{safe_value}</div>
+      <div id="{key}" style="white-space:pre-wrap;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#f9fafb;color:#111827;font-size:14px;line-height:1.6;min-height:{height}px;">{safe_value}</div>
     </div>
     """
-    components.html(component_html, height=height + 46)
+    components.html(component_html, height=height + 50)
+
+
+def render_usage_tips() -> None:
+    st.markdown(
+        """
+        1. 미샵 상품 상세 URL을 그대로 붙여넣습니다.  
+        2. **1~5번 항목은 카페24 SEO 입력란**에 사용합니다.  
+        3. **6~10번 항목은 상세페이지, 블로그, SNS 콘텐츠 참고용**으로 활용합니다.  
+        4. keywords는 한국어 중심으로 구성되고, 영어 키워드가 마지막에 자동 추가됩니다.  
+        """
+    )
+
+
+def render_generation_items() -> None:
+    st.markdown(
+        """
+        **카페24 입력용**  
+        - 1 브라우저 타이틀 (title)  
+        - 2 author  
+        - 3 description  
+        - 4 keywords  
+        - 5 이미지 alt  
+
+        **추가 활용용**  
+        - 6 SEO slug  
+        - 7 H1 제목  
+        - 8 롱테일 키워드  
+        - 9 SEO 점수  
+        - 10 블로그 SEO 문장  
+        """
+    )
+
+
+def render_why_seo_matters() -> None:
+    st.markdown(
+        """
+        **SEO는 왜 중요할까요?**
+
+        - 검색엔진이 상품 페이지 내용을 더 잘 이해하도록 도와줍니다.  
+        - 네이버, 구글, 쇼핑 검색에서 노출될 가능성을 높여줍니다.  
+        - 광고 없이도 장기적으로 유입을 쌓을 수 있는 기반이 됩니다.  
+        - 미샵처럼 상품 수가 많은 쇼핑몰일수록 누적 효과가 큽니다.  
+        - title, description, keywords, alt를 꾸준히 입력하면 쇼핑몰 전체의 전문성이 강화됩니다.  
+        """
+    )
 
 
 def render_output(result: dict) -> None:
     st.success("SEO 생성이 완료되었습니다.")
+    st.subheader("생성 결과")
 
-    col1, col2 = st.columns([1.1, 1])
+    copyable_output("1. 브라우저 타이틀(title) (카페24 SEO 입력)", result["title"], "copy_title", 54)
+    copyable_output("2. 메타태그1 author (카페24 SEO 입력)", result["author"], "copy_author", 54)
+    copyable_output("3. 메타태그2 description (카페24 SEO 입력)", result["description"], "copy_description", 100)
+    copyable_output("4. 메타태그3 keywords (카페24 SEO 입력)", result["keywords"], "copy_keywords", 140)
+    copyable_output("5. 상품 이미지 alt 텍스트 (상품 이미지 ALT)", result["alt_text"], "copy_alt", 54)
 
-    with col1:
-        st.subheader("생성 결과")
+    st.markdown("---")
 
-        copyable_output("1. 브라우저 타이틀(title) (카페24 SEO 입력)", result["title"], "copy_title", 52)
-        copyable_output("2. 메타태그1 author (카페24 SEO 입력)", result["author"], "copy_author", 52)
-        copyable_output("3. 메타태그2 description (카페24 SEO 입력)", result["description"], "copy_description", 92)
-        copyable_output("4. 메타태그3 keywords (카페24 SEO 입력)", result["keywords"], "copy_keywords", 145)
-        copyable_output("5. 상품 이미지 alt 텍스트 (상품 이미지 ALT)", result["alt_text"], "copy_alt", 52)
+    copyable_output("6. SEO slug (URL / 블로그 주소용)", result["slug"], "copy_slug", 54)
+    copyable_output("7. H1 제목 (상세페이지 첫문장)", result["h1_title"], "copy_h1", 54)
+    copyable_output(
+        "8. 롱테일 키워드 (블로그 / 콘텐츠 SEO)",
+        "\n".join(result["longtail_keywords"]),
+        "copy_longtail",
+        120,
+    )
+    copyable_output("9. SEO 점수 (페이지 SEO 품질 참고)", result["seo_score"], "copy_score", 54)
+    copyable_output("10. 블로그 SEO 문장 (블로그 / SNS 콘텐츠)", result["blog_sentence"], "copy_blog", 96)
 
-        st.markdown("---")
+    formatted = (
+        f"1. 브라우저 타이틀(title) : {result['title']}\n\n"
+        f"2. 메타태그1 author : {result['author']}\n\n"
+        f"3. 메타태그2 description : {result['description']}\n\n"
+        f"4. 메타태그3 keywords : {result['keywords']}\n\n"
+        f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}\n\n"
+        f"6. SEO slug : {result['slug']}\n\n"
+        f"7. H1 제목 : {result['h1_title']}\n\n"
+        f"8. 롱테일 키워드 : {', '.join(result['longtail_keywords'])}\n\n"
+        f"9. SEO 점수 : {result['seo_score']}\n\n"
+        f"10. 블로그 SEO 문장 : {result['blog_sentence']}"
+    )
 
-        copyable_output("6. SEO slug (URL / 블로그 주소용)", result["slug"], "copy_slug", 52)
-        copyable_output("7. H1 제목 (상세페이지 첫 문장)", result["h1_title"], "copy_h1", 68)
-        copyable_output(
-            "8. 롱테일 키워드 (블로그 / 콘텐츠 SEO)",
-            "\n".join(result["longtail_keywords"]),
-            "copy_longtail",
-            120,
-        )
-        copyable_output("9. SEO 점수 (페이지 SEO 품질 참고)", result["seo_score"], "copy_score", 68)
-        copyable_output("10. 블로그 SEO 문장 (블로그 / SNS 콘텐츠)", result["blog_sentence"], "copy_blog", 110)
+    copyable_output("전체 복사 (카페24 + 콘텐츠 SEO 참고용)", formatted, "copy_all", 360)
+    st.download_button(
+        "TXT 다운로드",
+        data=formatted,
+        file_name="misharp_seo_result.txt",
+        mime="text/plain",
+        use_container_width=True,
+    )
 
-        formatted = (
-            f"1. 브라우저 타이틀(title) : {result['title']}\n\n"
-            f"2. 메타태그1 author : {result['author']}\n\n"
-            f"3. 메타태그2 description : {result['description']}\n\n"
-            f"4. 메타태그3 keywords : {result['keywords']}\n\n"
-            f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}\n\n"
-            f"6. SEO slug : {result['slug']}\n\n"
-            f"7. H1 제목 : {result['h1_title']}\n\n"
-            f"8. 롱테일 키워드 : {', '.join(result['longtail_keywords'])}\n\n"
-            f"9. SEO 점수 : {result['seo_score']}\n\n"
-            f"10. 블로그 SEO 문장 : {result['blog_sentence']}"
-        )
-
-        copyable_output("전체 복사 (카페24 + 콘텐츠 SEO 참고용)", formatted, "copy_all", 360)
-        st.download_button(
-            "TXT 다운로드",
-            data=formatted,
-            file_name="misharp_seo_result.txt",
-            mime="text/plain",
-            use_container_width=True,
-        )
-
-    with col2:
-        st.subheader("분석 요약")
+    with st.expander("분석 요약", expanded=False):
         st.markdown(f"**상품명** : {result['product_name'] or '-'}")
         st.markdown(f"**카테고리 추정** : {result['category']}")
         st.markdown(f"**스타일 키워드 추정** : {', '.join(result['styles']) if result['styles'] else '-'}")
@@ -684,34 +721,13 @@ def render_output(result: dict) -> None:
 
 def main() -> None:
     st.title("🔎 MISHARP 카페24 SEO 자동 생성기")
-    st.caption("상품 URL을 넣으면 카페24 상품등록용 SEO 항목과 콘텐츠 SEO 참고 항목을 함께 생성합니다.")
 
-    with st.container(border=True):
-        st.markdown(
-            """
-            **카페24 입력용 생성 항목**
-            - 브라우저 타이틀(title)
-            - 메타태그 author
-            - 메타태그 description
-            - 메타태그 keywords
-            - 상품 이미지 alt 텍스트
-
-            **추가 참고용 생성 항목**
-            - SEO slug
-            - H1 제목
-            - 롱테일 키워드
-            - SEO 점수
-            - 블로그 SEO 문장
-
-            **키워드 구성 방식**
-            - 한국어 구매 키워드 중심
-            - 마지막에 영어 SEO 키워드 3~5개 자동 포함
-            """
-        )
+    with st.expander("사용팁", expanded=True):
+        render_usage_tips()
 
     default_url = "https://www.misharp.co.kr/product/detail.html?product_no=28522&cate_no=24&display_group=1"
     url = st.text_input(
-        "미샵 상품 URL",
+        "상품 URL",
         value=default_url,
         placeholder="https://www.misharp.co.kr/product/detail.html?..."
     )
@@ -719,6 +735,12 @@ def main() -> None:
     col_a, col_b = st.columns([1, 1])
     generate = col_a.button("SEO 생성하기", use_container_width=True, type="primary")
     clear = col_b.button("입력 초기화", use_container_width=True)
+
+    with st.expander("생성항목", expanded=False):
+        render_generation_items()
+
+    with st.expander("SEO란? 왜 중요할까?", expanded=False):
+        render_why_seo_matters()
 
     if clear:
         st.rerun()
@@ -741,21 +763,6 @@ def main() -> None:
             st.error(f"네트워크 오류가 발생했습니다: {e}")
         except Exception as e:
             st.error(f"예상치 못한 오류가 발생했습니다: {e}")
-
-    with st.expander("사용 팁"):
-        st.markdown(
-            """
-            1. 미샵 상품 상세 URL을 그대로 붙여넣습니다.
-            2. 1~5번 항목은 카페24 SEO 입력란에 사용합니다.
-            3. 6~10번 항목은 상세페이지 문장, 블로그, SNS, 콘텐츠 SEO에 활용합니다.
-            4. keywords는 한국어 중심으로 구성되고, 영어 키워드가 마지막에 자동 추가됩니다.
-
-            **추천 활용 방식**
-            - 신상품 등록 시마다 바로 사용
-            - 기존 베스트 상품 SEO 일괄 보강
-            - 상세페이지 첫 문장과 블로그 초안까지 함께 활용
-            """
-        )
 
     st.markdown("---")
     st.markdown(
