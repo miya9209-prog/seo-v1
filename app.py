@@ -397,6 +397,164 @@ def build_alt_text(product_name: str, category: str, styles: list[str]) -> str:
     return compact[:8]
 
 
+# ---------------------------
+# 추가 생성 항목
+# ---------------------------
+def build_slug(product_name: str, category: str) -> str:
+    en_map = {
+        "니트": "knit",
+        "가디건": "cardigan",
+        "블라우스": "blouse",
+        "셔츠": "shirt",
+        "티셔츠": "tshirt",
+        "맨투맨": "sweatshirt",
+        "자켓": "jacket",
+        "점퍼": "jumper",
+        "바바리": "trench",
+        "코트": "coat",
+        "슬랙스": "slacks",
+        "팬츠": "pants",
+        "스커트": "skirt",
+        "원피스": "dress",
+        "조끼": "vest",
+        "의류": "fashion",
+    }
+    base = en_map.get(category, "fashion")
+    name_part = normalize_product_name(product_name).lower()
+    name_part = re.sub(r"[^a-z0-9가-힣\s-]", "", name_part)
+    name_part = re.sub(r"\s+", "-", name_part).strip("-")
+    if not name_part:
+        return f"misharp-{base}"
+    return f"{name_part}-{base}"[:60].strip("-")
+
+
+def build_h1_title(product_name: str, category: str) -> str:
+    prefix_map = {
+        "니트": "4050 여성 니트 추천",
+        "가디건": "4050 여성 가디건 추천",
+        "블라우스": "중년 여성 블라우스 추천",
+        "셔츠": "4050 여성 셔츠 코디",
+        "티셔츠": "체형커버 티셔츠 추천",
+        "맨투맨": "데일리 맨투맨 추천",
+        "자켓": "4050 여성 자켓 추천",
+        "점퍼": "간절기 점퍼 추천",
+        "바바리": "4050 여성 바바리 코디",
+        "코트": "중년 여성 코트 추천",
+        "슬랙스": "4050 여성 슬랙스 추천",
+        "팬츠": "편한 팬츠 추천",
+        "스커트": "중년 여성 스커트 코디",
+        "원피스": "4050 여성 원피스 추천",
+        "조끼": "레이어드 조끼 코디",
+    }
+    prefix = prefix_map.get(category, "4050 여성 코디 추천")
+    return f"{prefix} {product_name}".strip()
+
+
+def build_longtail_keywords(product_name: str, category: str, styles: list[str]) -> list[str]:
+    keywords = []
+
+    if category == "니트":
+        keywords.extend([
+            f"4050 여성 {product_name} 코디",
+            f"중년 여성 출근룩 {category}",
+            f"단정한 {category} 추천",
+            f"4050 여성 {category} 코디",
+        ])
+    elif category in ["슬랙스", "팬츠"]:
+        keywords.extend([
+            f"4050 여성 {product_name} 추천",
+            f"중년 여성 편한 {category}",
+            f"출근룩 {category} 추천",
+            f"체형커버 {category} 코디",
+        ])
+    elif category in ["자켓", "코트", "바바리", "점퍼"]:
+        keywords.extend([
+            f"4050 여성 {product_name} 추천",
+            f"모임룩 {category} 코디",
+            f"중년 여성 {category} 추천",
+            f"간절기 {category} 코디",
+        ])
+    else:
+        keywords.extend([
+            f"4050 여성 {product_name} 추천",
+            f"중년 여성 {category} 코디",
+            f"출근룩 {category} 추천",
+            f"모임룩 {category} 추천",
+        ])
+
+    if "루즈핏" in styles:
+        keywords.append(f"군살커버 {category} 추천")
+    if "슬리밍" in styles or "꼬임" in styles:
+        keywords.append(f"날씬해보이는 {category} 코디")
+    if "배색" in styles or "카라" in styles:
+        keywords.append(f"단정한 {category} 코디")
+
+    return dedupe_keep_order(keywords)[:6]
+
+
+def calculate_seo_score(title: str, description: str, keywords: str, alt_text: str) -> str:
+    score = 0
+    notes = []
+
+    if 30 <= len(title) <= 50:
+        score += 25
+    else:
+        notes.append("title 길이 조정 필요")
+
+    if 120 <= len(description) <= 160:
+        score += 25
+    else:
+        notes.append("description 길이 조정 필요")
+
+    keyword_count = len([k.strip() for k in keywords.split(",") if k.strip()])
+    if 15 <= keyword_count <= 25:
+        score += 25
+    else:
+        notes.append("keywords 개수 점검 필요")
+
+    if alt_text and len(alt_text) <= 12:
+        score += 15
+    else:
+        notes.append("alt 텍스트 최적화 필요")
+
+    if re.search(r"(4050|중년|여성)", title + " " + description + " " + keywords):
+        score += 10
+    else:
+        notes.append("타깃 키워드 보강 필요")
+
+    if score >= 90:
+        grade = "매우 좋음"
+    elif score >= 75:
+        grade = "좋음"
+    elif score >= 60:
+        grade = "보통"
+    else:
+        grade = "보완 필요"
+
+    if notes:
+        return f"{score}점 / 100점 ({grade}) · 참고: {', '.join(notes)}"
+    return f"{score}점 / 100점 ({grade})"
+
+
+def build_blog_seo_sentence(product_name: str, category: str, styles: list[str], description: str) -> str:
+    mood = "단정하면서도 세련된 분위기"
+    if "루즈핏" in styles:
+        mood = "편안하면서도 군살 커버에 좋은 분위기"
+    elif "슬리밍" in styles or "꼬임" in styles:
+        mood = "여성스럽고 날씬해 보이는 분위기"
+    elif "트위드" in styles:
+        mood = "고급스럽고 격식 있는 분위기"
+    elif "배색" in styles or "카라" in styles:
+        mood = "단정하고 차려입은 듯한 분위기"
+
+    short_desc = clean_text(description)[:80].strip(" .")
+    return (
+        f"{product_name}는 {mood}를 연출하기 좋은 아이템으로 "
+        f"4050 여성의 출근룩, 모임룩, 데일리 코디에 두루 활용하기 좋습니다. "
+        f"{short_desc}."
+    )
+
+
 def analyze_product(url: str) -> dict:
     html_text = fetch_html(url)
     soup = BeautifulSoup(html_text, "html.parser")
@@ -411,8 +569,15 @@ def analyze_product(url: str) -> dict:
     title = build_title(product_name, category, styles)
     author = AUTHOR_DEFAULT
     description = build_description(product_name, category, description_src, styles, materials)
-    keywords = build_keywords(product_name, category, styles)
+    keywords_list = build_keywords(product_name, category, styles)
+    keywords = ", ".join(keywords_list)
     alt_text = build_alt_text(product_name, category, styles)
+
+    slug = build_slug(product_name, category)
+    h1_title = build_h1_title(product_name, category)
+    longtail_keywords = build_longtail_keywords(product_name, category, styles)
+    seo_score = calculate_seo_score(title, description, keywords, alt_text)
+    blog_sentence = build_blog_seo_sentence(product_name, category, styles, description)
 
     return {
         "url": url,
@@ -424,8 +589,13 @@ def analyze_product(url: str) -> dict:
         "title": title,
         "author": author,
         "description": description,
-        "keywords": ", ".join(keywords),
+        "keywords": keywords,
         "alt_text": alt_text,
+        "slug": slug,
+        "h1_title": h1_title,
+        "longtail_keywords": longtail_keywords,
+        "seo_score": seo_score,
+        "blog_sentence": blog_sentence,
         "raw_description": description_src,
     }
 
@@ -434,13 +604,13 @@ def copyable_output(label: str, value: str, key: str, height: int = 68) -> None:
     safe_value = html.escape(value or "")
     safe_label = html.escape(label)
     component_html = f"""
-    <div style=\"margin:0 0 10px 0;\">
-      <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;\">
-        <div style=\"font-size:14px;font-weight:600;color:#111827;\">{safe_label}</div>
-        <button onclick=\"navigator.clipboard.writeText(document.getElementById('{key}').innerText);this.innerText='✓ 복사됨';setTimeout(()=>this.innerText='복사',1400);\"
-          style=\"font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;\">복사</button>
+    <div style="margin:0 0 10px 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:14px;font-weight:600;color:#111827;">{safe_label}</div>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('{key}').innerText);this.innerText='✓ 복사됨';setTimeout(()=>this.innerText='복사',1400);"
+          style="font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;">복사</button>
       </div>
-      <div id=\"{key}\" style=\"white-space:pre-wrap;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#f9fafb;font-size:14px;line-height:1.6;min-height:{height}px;\">{safe_value}</div>
+      <div id="{key}" style="white-space:pre-wrap;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#f9fafb;font-size:14px;line-height:1.6;min-height:{height}px;">{safe_value}</div>
     </div>
     """
     components.html(component_html, height=height + 46)
@@ -454,21 +624,39 @@ def render_output(result: dict) -> None:
     with col1:
         st.subheader("생성 결과")
 
-        copyable_output("1. 브라우저 타이틀(title)", result["title"], "copy_title", 52)
-        copyable_output("2. 메타태그1 author", result["author"], "copy_author", 52)
-        copyable_output("3. 메타태그2 description", result["description"], "copy_description", 92)
-        copyable_output("4. 메타태그3 keywords", result["keywords"], "copy_keywords", 145)
-        copyable_output("5. 상품 이미지 alt 텍스트", result["alt_text"], "copy_alt", 52)
+        copyable_output("1. 브라우저 타이틀(title) (카페24 SEO 입력)", result["title"], "copy_title", 52)
+        copyable_output("2. 메타태그1 author (카페24 SEO 입력)", result["author"], "copy_author", 52)
+        copyable_output("3. 메타태그2 description (카페24 SEO 입력)", result["description"], "copy_description", 92)
+        copyable_output("4. 메타태그3 keywords (카페24 SEO 입력)", result["keywords"], "copy_keywords", 145)
+        copyable_output("5. 상품 이미지 alt 텍스트 (상품 이미지 ALT)", result["alt_text"], "copy_alt", 52)
+
+        st.markdown("---")
+
+        copyable_output("6. SEO slug (URL / 블로그 주소용)", result["slug"], "copy_slug", 52)
+        copyable_output("7. H1 제목 (상세페이지 첫 문장)", result["h1_title"], "copy_h1", 68)
+        copyable_output(
+            "8. 롱테일 키워드 (블로그 / 콘텐츠 SEO)",
+            "\n".join(result["longtail_keywords"]),
+            "copy_longtail",
+            120,
+        )
+        copyable_output("9. SEO 점수 (페이지 SEO 품질 참고)", result["seo_score"], "copy_score", 68)
+        copyable_output("10. 블로그 SEO 문장 (블로그 / SNS 콘텐츠)", result["blog_sentence"], "copy_blog", 110)
 
         formatted = (
             f"1. 브라우저 타이틀(title) : {result['title']}\n\n"
             f"2. 메타태그1 author : {result['author']}\n\n"
             f"3. 메타태그2 description : {result['description']}\n\n"
             f"4. 메타태그3 keywords : {result['keywords']}\n\n"
-            f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}"
+            f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}\n\n"
+            f"6. SEO slug : {result['slug']}\n\n"
+            f"7. H1 제목 : {result['h1_title']}\n\n"
+            f"8. 롱테일 키워드 : {', '.join(result['longtail_keywords'])}\n\n"
+            f"9. SEO 점수 : {result['seo_score']}\n\n"
+            f"10. 블로그 SEO 문장 : {result['blog_sentence']}"
         )
 
-        copyable_output("카페24 복사용 전체", formatted, "copy_all", 240)
+        copyable_output("전체 복사 (카페24 + 콘텐츠 SEO 참고용)", formatted, "copy_all", 360)
         st.download_button(
             "TXT 다운로드",
             data=formatted,
@@ -496,17 +684,24 @@ def render_output(result: dict) -> None:
 
 def main() -> None:
     st.title("🔎 MISHARP 카페24 SEO 자동 생성기")
-    st.caption("상품 URL을 넣으면 카페24 상품등록용 SEO 항목을 자동 생성합니다.")
+    st.caption("상품 URL을 넣으면 카페24 상품등록용 SEO 항목과 콘텐츠 SEO 참고 항목을 함께 생성합니다.")
 
     with st.container(border=True):
         st.markdown(
             """
-            **생성 항목**
+            **카페24 입력용 생성 항목**
             - 브라우저 타이틀(title)
             - 메타태그 author
             - 메타태그 description
             - 메타태그 keywords
             - 상품 이미지 alt 텍스트
+
+            **추가 참고용 생성 항목**
+            - SEO slug
+            - H1 제목
+            - 롱테일 키워드
+            - SEO 점수
+            - 블로그 SEO 문장
 
             **키워드 구성 방식**
             - 한국어 구매 키워드 중심
@@ -551,14 +746,14 @@ def main() -> None:
         st.markdown(
             """
             1. 미샵 상품 상세 URL을 그대로 붙여넣습니다.
-            2. 생성된 결과를 카페24 SEO 입력란에 복사합니다.
-            3. 필요하면 title과 description만 미세 수정해 사용합니다.
+            2. 1~5번 항목은 카페24 SEO 입력란에 사용합니다.
+            3. 6~10번 항목은 상세페이지 문장, 블로그, SNS, 콘텐츠 SEO에 활용합니다.
             4. keywords는 한국어 중심으로 구성되고, 영어 키워드가 마지막에 자동 추가됩니다.
 
             **추천 활용 방식**
             - 신상품 등록 시마다 바로 사용
             - 기존 베스트 상품 SEO 일괄 보강
-            - 키워드 누적을 통해 미샵의 4050 여성 패션 전문성을 강화
+            - 상세페이지 첫 문장과 블로그 초안까지 함께 활용
             """
         )
 
