@@ -731,7 +731,7 @@ def main() -> None:
 
 
     with st.expander("사용팁", expanded=False):
-    render_usage_tips()
+        render_usage_tips()
 
     default_url = "https://www.misharp.co.kr/product/detail.html?product_no=28522&cate_no=24&display_group=1"
     url = st.text_input(
