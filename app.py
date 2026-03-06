@@ -425,12 +425,20 @@ def render_output(result: dict) -> None:
         copyable_output("5. 상품 이미지 alt 텍스트", result["alt_text"], "copy_alt", 52)
 
         formatted = (
-    f"1. 브라우저 타이틀(title) : {result['title']}\n\n"
-    f"2. 메타태그1 author : {result['author']}\n\n"
-    f"3. 메타태그2 description : {result['description']}\n\n"
-    f"4. 메타태그3 keywords : {result['keywords']}\n\n"
-    f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}"
-)
+            f"1. 브라우저 타이틀(title) : {result['title']}
+
+"
+            f"2. 메타태그1 author : {result['author']}
+
+"
+            f"3. 메타태그2 description : {result['description']}
+
+"
+            f"4. 메타태그3 keywords : {result['keywords']}
+
+"
+            f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}"
+        )
 
         copyable_output("카페24 복사용 전체", formatted, "copy_all", 240)
         st.download_button(
@@ -517,6 +525,14 @@ def main() -> None:
             """
         )
 
+
+st.markdown("---")
+st.markdown("""
+<div style='text-align:center;font-size:13px;color:#6b7280;padding:10px 0;'>
+© 2026 <b>MISHARP 미샵</b>. All rights reserved.<br>
+MISHARP SEO Generator
+</div>
+""", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
