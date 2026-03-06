@@ -6,6 +6,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 st.set_page_config(
@@ -393,6 +394,22 @@ def analyze_product(url: str) -> dict:
     }
 
 
+def copyable_output(label: str, value: str, key: str, height: int = 68) -> None:
+    safe_value = html.escape(value or "")
+    safe_label = html.escape(label)
+    component_html = f"""
+    <div style=\"margin:0 0 10px 0;\">
+      <div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;\">
+        <div style=\"font-size:14px;font-weight:600;color:#111827;\">{safe_label}</div>
+        <button onclick=\"navigator.clipboard.writeText(document.getElementById('{key}').innerText);this.innerText='복사완료';setTimeout(()=>this.innerText='복사',1200);\"
+          style=\"font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;\">복사</button>
+      </div>
+      <div id=\"{key}\" style=\"white-space:pre-wrap;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;background:#f9fafb;font-size:14px;line-height:1.6;min-height:{height}px;\">{safe_value}</div>
+    </div>
+    """
+    components.html(component_html, height=height + 46)
+
+
 def render_output(result: dict) -> None:
     st.success("SEO 생성이 완료되었습니다.")
 
@@ -400,20 +417,30 @@ def render_output(result: dict) -> None:
 
     with col1:
         st.subheader("생성 결과")
-        st.text_input("1. 브라우저 타이틀(title)", result["title"])
-        st.text_input("2. 메타태그1 author", result["author"])
-        st.text_area("3. 메타태그2 description", result["description"], height=120)
-        st.text_area("4. 메타태그3 keywords", result["keywords"], height=180)
-        st.text_input("5. 상품 이미지 alt 텍스트", result["alt_text"])
+
+        copyable_output("1. 브라우저 타이틀(title)", result["title"], "copy_title", 52)
+        copyable_output("2. 메타태그1 author", result["author"], "copy_author", 52)
+        copyable_output("3. 메타태그2 description", result["description"], "copy_description", 92)
+        copyable_output("4. 메타태그3 keywords", result["keywords"], "copy_keywords", 145)
+        copyable_output("5. 상품 이미지 alt 텍스트", result["alt_text"], "copy_alt", 52)
 
         formatted = (
-            f"1. 브라우저 타이틀(title) : {result['title']}\n\n"
-            f"2. 메타태그1 author : {result['author']}\n\n"
-            f"3. 메타태그2 description : {result['description']}\n\n"
-            f"4. 메타태그3 keywords : {result['keywords']}\n\n"
+            f"1. 브라우저 타이틀(title) : {result['title']}
+
+"
+            f"2. 메타태그1 author : {result['author']}
+
+"
+            f"3. 메타태그2 description : {result['description']}
+
+"
+            f"4. 메타태그3 keywords : {result['keywords']}
+
+"
             f"5. 상품 이미지 alt 텍스트 : {result['alt_text']}"
         )
-        st.text_area("카페24 복사용", formatted, height=260)
+
+        copyable_output("카페24 복사용 전체", formatted, "copy_all", 240)
         st.download_button(
             "TXT 다운로드",
             data=formatted,
